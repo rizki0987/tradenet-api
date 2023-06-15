@@ -4,17 +4,17 @@ const { nanoid } = require('nanoid');
 const login = async (request, h) => {
     try {
       const { email, password } = request.payload;
-
+  
       // Lakukan validasi username dan password dengan mengambil data dari MySQL
       const sql = `SELECT users.*, GROUP_CONCAT(interests.genre) AS interests
       FROM users
       LEFT JOIN interests ON FIND_IN_SET(interests.id, users.interest)
       WHERE email = ?
-      GROUP BY users.id`;
-
+      GROUP BY users.id, users.username`;
+      
       const results = await query(sql, [email]);
       const user = results[0];
-
+  
       if (!user) {
         const response = h.response({
           status: "fail",
@@ -23,7 +23,8 @@ const login = async (request, h) => {
         response.code(401);
         return response;
       }
-
+  
+  
       if (user.password !== password) {
         const response = h.response({
           status: "fail",
@@ -53,7 +54,7 @@ const login = async (request, h) => {
       const sessionSql = `INSERT INTO sessions (email, token) VALUES (?, ?)`;
       const sessionParams = [email, token];
       await query(sessionSql, sessionParams);
-
+      
       }
       if (user.interest) {
         // Pengguna sudah pernah memilih interest content sebelumnya
@@ -80,7 +81,7 @@ const login = async (request, h) => {
       return response;
     }
   };
-
+  
   // Fungsi untuk menjalankan query dengan menggunakan Promise
   const query = (sql, params) => {
     return new Promise((resolve, reject) => {
