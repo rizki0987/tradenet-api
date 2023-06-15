@@ -24,7 +24,7 @@ const getPost = (request, h) => {
     WHERE
       content.userId = ?
     GROUP BY
-      content.contentId
+      content.contentId, users.userProfilePicture
     ORDER BY
       content.contentId DESC;
   `;
