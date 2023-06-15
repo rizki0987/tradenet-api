@@ -1,97 +1,118 @@
 const db = require('../config/db');
-const interest = require('./interest')
 const { nanoid } = require('nanoid');
+
 const login = async (request, h) => {
-    try {
-      const { email, password } = request.payload;
-  
-      // Lakukan validasi username dan password dengan mengambil data dari MySQL
-      const sql = `SELECT users.*, GROUP_CONCAT(interests.genre) AS interests
+  try {
+    const { email, password } = request.payload;
+
+    // Lakukan validasi username dan password dengan mengambil data dari MySQL
+    const sql = `
+      SELECT users.*, GROUP_CONCAT(interests.genre) AS interests
       FROM users
       LEFT JOIN interests ON FIND_IN_SET(interests.id, users.interest)
       WHERE email = ?
-      GROUP BY users.id, users.username`;
-      
-      const results = await query(sql, [email]);
-      const user = results[0];
-  
-      if (!user) {
-        const response = h.response({
-          status: "fail",
-          message: "Login Username tidak valid"
-        });
-        response.code(401);
-        return response;
-      }
-  
-  
-      if (user.password !== password) {
-        const response = h.response({
-          status: "fail",
-          message: "password tidak valid"
-        });
-        response.code(401);
-        return response;
-      }
+      GROUP BY users.id, users.username
+    `;
 
-      //Cek apakah sudah login sebelumnya
-      const sessionCheckSql = `SELECT * FROM sessions WHERE email = ?`;
-      const sessionCheckParams = [email];
-      const existingSession = await query(sessionCheckSql, sessionCheckParams);
+    const results = await query(sql, [email]);
+    const user = results[0];
 
-      if (existingSession.length > 0) {
-        const response = h.response({
-          status: "fail",
-          message: "Sudah login",
-        });
-        response.code(401);
-        return response;
-      }
+    if (!user) {
+      const response = {
+        success: false,
+        error: 'Login Username tidak valid',
+      };
+      return h.response(response).code(401);
+    }
 
-      // Simpan informasi sesi ke dalam database
-      if (existingSession.length === 0) {
+    if (user.password !== password) {
+      const response = {
+        success: false,
+        error: 'password tidak valid',
+      };
+      return h.response(response).code(401);
+    }
+
+    // Cek apakah sudah login sebelumnya
+    const sessionCheckSql = `SELECT * FROM sessions WHERE email = ?`;
+    const sessionCheckParams = [email];
+    const existingSession = await query(sessionCheckSql, sessionCheckParams);
+
+    if (existingSession.length > 0) {
+      const response = {
+        success: false,
+        error: 'Sudah login',
+      };
+      return h.response(response).code(401);
+    }
+
+    // Simpan informasi sesi ke dalam database
+    if (existingSession.length === 0) {
       const token = nanoid(16);
       const sessionSql = `INSERT INTO sessions (email, token) VALUES (?, ?)`;
       const sessionParams = [email, token];
       await query(sessionSql, sessionParams);
-      
-      }
-      if (user.interest) {
-        // Pengguna sudah pernah memilih interest content sebelumnya
-        const response = h.response({
-          status: "success",
-          message: "Sukses login",
-          interests: user.interests.split(','), // Mengembalikan interest content dari pengguna
-        });
-        response.code(200);
-        return response;
-      } else {
-        // Pengguna login pertama kali
-        // Arahkan ke handler interest.js
-        return h.redirect(interest);
-      }
-
-    } catch (error) {
-      console.error(error);
-      const response = h.response({
-        status: "fail",
-        message: "Terjadi kesalahan server"
-      });
-      response.code(500);
-      return response;
+      user.token = token;
     }
-  };
-  
-  // Fungsi untuk menjalankan query dengan menggunakan Promise
-  const query = (sql, params) => {
-    return new Promise((resolve, reject) => {
-      db.query(sql, params, (error, results) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(results);
-        }
-      });
+
+    if (user.interest) {
+      // Pengguna sudah pernah memilih interest content sebelumnya
+      const response = {
+        success: true,
+        data: {
+          token: {
+            token: user.token,
+          },
+          userProfile: {
+            userId: user.id,
+            userName: user.username,
+            userEmail: user.email,
+            userPhone: user.phoneNumber,
+            interest: user.interests.split(','),
+          },
+        },
+      };
+      return h.response(response).code(200);
+    } else {
+      // Pengguna belum memiliki minat (interest)
+      const response = {
+        success: true,
+        data: {
+          token: {
+            token: user.token,
+          },
+          userProfile: {
+            userId: user.id,
+            userName: user.username,
+            userEmail: user.email,
+            userPhone: user.phoneNumber,
+            interest: [],
+          },
+        },
+      };
+      return h.response(response).code(200);
+    }
+  } catch (error) {
+    console.error(error);
+    const response = {
+      success: false,
+      error: 'Terjadi kesalahan server',
+    };
+    return h.response(response).code(500);
+  }
+};
+
+// Fungsi untuk menjalankan query dengan menggunakan Promise
+const query = (sql, params) => {
+  return new Promise((resolve, reject) => {
+    db.query(sql, params, (error, results) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(results);
+      }
     });
-  };
-module.exports = login
+  });
+};
+
+module.exports = login;

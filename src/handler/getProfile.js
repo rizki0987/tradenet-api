@@ -1,18 +1,35 @@
 const db = require('../config/db');
 
 const getProfile = async (request, h) => {
-  const { id } = request.params;
+  const authorizationHeader = request.headers.authorization;
+  const token = authorizationHeader.split(' ')[1];
+
   try {
     const sql = `
-      SELECT u.username, u.email, u.phoneNumber, GROUP_CONCAT(g.genre SEPARATOR ', ') AS interest
+      SELECT u.id AS userId, u.username AS userName, u.email AS userEmail, u.phoneNumber AS userPhone, u.userProfilePicture, u.followers, GROUP_CONCAT(g.id SEPARATOR ', ') AS interest
       FROM users u
       JOIN interests g ON FIND_IN_SET(g.id, u.interest)
-      WHERE u.id = ?
-      GROUP BY u.id, u.username
+      JOIN sessions s ON u.email = s.email
+      WHERE s.token = ?
+      GROUP BY u.id, u.username, u.email, u.phoneNumber, u.userProfilePicture, u.followers
     `;
-    const result = await query(sql, [id]);
+    const result = await query(sql, [token]);
     if (result.length > 0) {
-      return result[0]; // Mengembalikan profil user sebagai respons JSON
+      const profile = {
+        userId: result[0].userId,
+        userName: result[0].userName,
+        userEmail: result[0].userEmail,
+        userPhone: result[0].userPhone,
+        profilePictureURL: result[0].userProfilePicture,
+        followerCount: result[0].followers,
+        interest: result[0].interest.split(', '),
+      };
+      return {
+        success: true,
+        data: {
+          userProfile: profile,
+        },
+      };
     } else {
       return h.response('Profil tidak ditemukan').code(404);
     }

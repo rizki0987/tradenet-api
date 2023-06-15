@@ -1,6 +1,6 @@
 const db = require('../config/db');
 
-const getPost = (request, h) => {
+const getMarket = (request, h) => {
   const userId = request.query.userId;
   const startIndex = parseInt(request.query.startIndex) || 0;
   const limit = parseInt(request.query.limit) || 20;
@@ -17,8 +17,7 @@ const getPost = (request, h) => {
       content.likeCount,
       content.liked,
       content.priceItem,
-      CONCAT('Rp', content.priceItem) AS priceItemPrintAble,
-      content.commentCount
+      CONCAT('Rp', content.priceItem) AS priceItemPrintAble
     FROM
       content
     INNER JOIN
@@ -52,7 +51,6 @@ const getPost = (request, h) => {
             liked: result.liked,
             priceItem: result.priceItem,
             priceItemPrintAble: result.priceItemPrintAble,
-            commentCount: result.commentCount,
           },
         }));
         resolve(list);
@@ -61,4 +59,4 @@ const getPost = (request, h) => {
   });
 };
 
-module.exports = getPost;
+module.exports = getMarket;

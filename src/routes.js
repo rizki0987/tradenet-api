@@ -7,6 +7,10 @@ const createPost = require('./handler/createPost')
 const deletePost = require('./handler/deletePost')
 const getPost = require('./handler/getPost')
 const getContent = require('./handler/getContent')
+const getInterest = require('./handler/getInterest')
+const getMarket= require('./handler/getMarket')
+const getInterestsById = require('./handler/getInterestById')
+const createComments = require('./handler/createComments')
 const routes = [
     {
         method: 'POST',
@@ -15,7 +19,7 @@ const routes = [
     },
     {
         method: 'POST',
-        path: "/api/auth/register",
+        path: "/api/auth/registration",
         handler: register
     },
     {
@@ -25,38 +29,62 @@ const routes = [
     },
     {
         method: 'POST',
-        path: '/api/interest',
+        path: '/api/profile/interest',
         handler: interest
 
     },
     {
         method: 'GET',
-        path: '/api/getProfile/{id}',
+        path: '/api/profile',
         handler: getProfile
 
     },
     {
-        method: 'PUT',
-        path: '/api/createPost',
+        method: 'POST',
+        path: '/api/post',
         handler: createPost
 
     },
     {
         method: 'DELETE',
-        path: '/api/deletePost/{contentId}',
+        path: '/deletePost/{contentId}',
         handler: deletePost
 
     },
     {
         method: 'GET',
-        path: '/api/getPost/{userId}',
+        path: '/api/post-list',
         handler: getPost
 
     },
     {
         method: 'GET',
-        path: '/api/getContent/{id}',
+        path: '/api/content',
         handler: getContent
+
+    },
+    {
+        method: 'GET',
+        path: '/api/lookup/interest',
+        handler: getInterest
+
+    },
+    {
+        method: 'GET',
+        path: '/api/market-post-list',
+        handler: getMarket
+
+    },
+    {
+        method: 'GET',
+        path: '/api/lookup/interest/{id}',
+        handler: getInterestsById
+
+    },
+    {
+        method: 'POST',
+        path: '/api/post/comment',
+        handler: createComments
 
     }
 ]

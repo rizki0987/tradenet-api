@@ -2,25 +2,39 @@ const db = require('../config/db');
 
 const logout = async (request, h) => {
   try {
-    const { email } = request.payload;
+    const authorizationHeader = request.headers.authorization;
+    const token = authorizationHeader.split(' ')[1]; // Mengambil nilai token setelah "Bearer "
 
-    // Hapus informasi sesi dari database
-    const sql = `DELETE FROM sessions WHERE email = ?`;
-    const params = [email];
+    // Melakukan query ke tabel sesi untuk mencari token yang cocok
+    const sessionCheckSql = `SELECT * FROM sessions WHERE token = ?`;
+    const sessionCheckParams = [token];
+    const existingSession = await query(sessionCheckSql, sessionCheckParams);
 
-    await query(sql, params);
+    if (existingSession.length === 0) {
+      const response = h.response({
+        success: false,
+        error: 'Token tidak valid',
+      });
+      response.code(401);
+      return response;
+    }
+
+    // Hapus informasi sesi dari database berdasarkan token
+    const deleteSessionSql = `DELETE FROM sessions WHERE token = ?`;
+    const deleteSessionParams = [token];
+    await query(deleteSessionSql, deleteSessionParams);
 
     const response = h.response({
-      status: 'success',
-      message: 'Logout berhasil'
+      success: true,
+      data: null,
     });
     response.code(200);
     return response;
   } catch (error) {
     console.error(error);
     const response = h.response({
-      status: 'fail',
-      message: 'Terjadi kesalahan server'
+      success: false,
+      error: 'Terjadi kesalahan server',
     });
     response.code(500);
     return response;
