@@ -3,7 +3,7 @@ const { nanoid } = require('nanoid');
 const register = async (request, h) => {
     const id = nanoid(16);
     const { username, email, password, phoneNumber } = request.payload;
-
+  
     // Check if username is empty
     if (!username) {
       const response = h.response({
@@ -37,14 +37,14 @@ const register = async (request, h) => {
         response.code(400);
         return response;
       }
-
+  
     try {
-
+  
       // Check if username already exists in the database
       const checkUsernameSql = 'SELECT * FROM users WHERE username = ?';
       const checkUsernameParams = [username];
       const existingUser = await query(checkUsernameSql, checkUsernameParams);
-
+  
       if (existingUser.length > 0) {
         const response = h.response({
           status: 'fail',
@@ -53,18 +53,18 @@ const register = async (request, h) => {
         response.code(400);
         return response;
       }
-
+  
       // Hash the password
-
+  
       const sql = `INSERT INTO users (id, username, email, password, phoneNumber) VALUES (?, ?, ?, ?, ?)`;
-
-      const params = [id, username, email, hashedPassword, phoneNumber];
-
+  
+      const params = [id, username, email, password, phoneNumber];
+  
       db.query(sql, params, function (err, result) {
         if (err) throw err;
         console.log('Result: ' + result);
       });
-
+  
       const response = h.response({
         status: 'success',
         message: 'sukses register',
@@ -80,7 +80,7 @@ const register = async (request, h) => {
       return response;
     }
   };
-
+  
   // Fungsi untuk menjalankan query dengan menggunakan Promise
   const query = (sql, params) => {
     return new Promise((resolve, reject) => {
