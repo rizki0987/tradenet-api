@@ -8,7 +8,7 @@ const getProfile = async (request, h) => {
       FROM users u
       JOIN interests g ON FIND_IN_SET(g.id, u.interest)
       WHERE u.id = ?
-      GROUP BY u.id
+      GROUP BY u.id, u.username
     `;
     const result = await query(sql, [id]);
     if (result.length > 0) {
