@@ -11,6 +11,7 @@ const getInterest = require('./handler/getInterest')
 const getMarket= require('./handler/getMarket')
 const getInterestsById = require('./handler/getInterestById')
 const createComments = require('./handler/createComments')
+
 const routes = [
     {
         method: 'POST',
@@ -86,7 +87,8 @@ const routes = [
         path: '/api/post/comment',
         handler: createComments
 
-    }
+    },
+    
 ]
 
 module.exports = routes
