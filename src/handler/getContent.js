@@ -16,7 +16,7 @@ const getContent = (request, h) => {
       content.title,
       content.caption,
       content.likeCount,
-      content.liked,
+      CASE WHEN content.liked = 1 THEN 'true' ELSE 'false' END AS liked, -- Menggunakan CASE statement untuk mengubah 0/1 menjadi true/false
       content.priceItem,
       CONCAT('Rp.', content.priceItem) AS priceItemPrintAble
     FROM
